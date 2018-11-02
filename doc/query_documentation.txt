@@ -1,0 +1,133 @@
+/*
+ * When credentials are sent to the server for identification,
+ * the server selects the user ID that corresponds with the
+ * submitted email and password.
+ *
+ * For this example our credentials will be the following:
+ *     email:       "somebody@example.com"
+ *     password:    "secret"
+ */
+SELECT u_id
+FROM   user
+WHERE  email    = ?
+AND    password = ?;
+
+/*
+ * When updating user information, the table is updated for
+ * entries with a matching user ID. Since this is a primary
+ * key, this should only be one updated entry.
+ *
+ * For this example, we're updating user #0 with a new email:
+ * "somebody@elsewhere.org"
+ */
+UPDATE user
+SET    email = ?
+WHERE  u_id  = ?;
+
+/*
+ * Before creating a new user, a new user ID must be allocated.
+ * For security reasons, this number must be random; thus, a
+ * random number is generated and compared to the database to determine
+ * if that ID is already being used.
+ *
+ * For this example, we've generated a new ID 5.
+ */
+SELECT COUNT(*)
+FROM user
+WHERE u_id = ?;
+
+/*
+ * After getting a new id, the entry can be populated with the user's
+ * information.
+ *
+ * For this example, we are adding a new user with the following
+ * information, with the new id we generated in the previous example 5.
+ *
+ *     u_id: 5
+ *     firstname: John
+ *     lastname: Doe
+ *     email: johndoe@example.com
+ *     password:"secret"
+ *     org_id:0
+ *     super_id: 0
+ */
+INSERT INTO user (u_id, firstname, lastname, email, password, org_id, super_id)
+VALUES      (?, ?, ?, ?, ?, ?, ?);
+
+/*
+ * When populating the message inbox for a user, the database is
+ * queried for any entries in the message table with a sender ID or
+ * recipient ID matching the given user.
+ *
+ * For this example, user #2 wants to see all of their messages.
+ */
+SELECT *
+FROM   messages
+WHERE  sender_id    = ?
+OR     recipient_id = ?;
+
+/*
+ * When updating messages, the server updates entries with a matching
+ * message id, which is a primary key.
+ *
+ * For this example, user #2 wants to mark message #4 as read, and move
+ * it out of their active inbox.
+ */
+UPDATE messages
+SET    m_read = ?, m_active = ?
+WHERE  m_id = ?;
+
+/*
+ * Before adding a new message, a new ID must be allocated. The server
+ * generates a random number checks for ay messages that also us this
+ * value as their ID.
+ *
+ * In this example, we've generated an ID value 6.
+ */
+SELECT COUNT(*)
+FROM   messages
+WHERE  m_id = ?;
+
+/*
+ * After allocating a new message ID, the message can then be added
+ * to the server.
+ *
+ * In this example, the ID from the last example will be used for a
+ * message with the following values:
+ *
+ *     m_id: 6
+ *     sender_id: 5
+ *     recipient_id: 1
+ *     m_subject: "Topic"
+ *     m_content: "Important"
+ */
+INSERT INTO messages (m_id, sender_id, recipient_id, m_subject, m_content, m_timestamp, m_read, m_active, p_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+/*
+ * Before punches can be added to the clock, they need a fresh p_id. The
+ * server generates a random id and compares it to the punch table to
+ * determine if it's free to use.
+ *
+ * In this example, we've generated an ID 64.
+ */
+SELECT COUNT(*)
+FROM   punch
+WHERE  p_id = ?;
+
+/*
+ * Once an ID has been allocated, the information can be added to the
+ * punch table.
+ *
+ * In this example, a clock-punch has been made with the following
+ * values:
+ *
+ *     u_id: 2
+ *     p_punchtime: now
+ *     p_submittime: now
+ *     p-type: "IN"
+ *     p_id: 64
+ *     p_verified: 0
+ */
+INSERT INTO punch (u_id, p_id, p_punchtime, p_submittime, p_verified)
+VALUES(?, ?, ?, ?, ?);
