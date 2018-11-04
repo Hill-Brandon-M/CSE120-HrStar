@@ -7,7 +7,7 @@ const user = require('./user');
  *
  * Database interface abstraction.
  */
-var host = function (ip, dbPath) {
+module.exports = function (ip, dbPath) {
 
     this.ip = ip;
     this.db = new sqlite3.Database(dbPath);
@@ -17,12 +17,13 @@ var host = function (ip, dbPath) {
 
         this.db.get(query, [email, password], (err, tuple) => {
             if (err) {
-                return console.error(err.message);
+                console.error(err.message);
+                return -1;
             }
 
             return tuple.u_id;
         });
-    };
+    }
 
     this.getUserFromID = function (userID) {
         let query = "SELECT * FROM users WHERE u_id = ?;";
@@ -35,12 +36,12 @@ var host = function (ip, dbPath) {
 
             return new user(tuple.u_id, tuple.firstname, tuple.lastname, tuple.username, tuple.password, tuple.email, tuple.org_id, tuple.super_id);
         });
-    };
+    }
 
     this.getUser = function (email, password) {
         var userID = this.getUserID(email, password);
         return this.getUserFromID(userID);
-    };
+    }
 
     this.getPunches = function (userID) {
         let query = "SELECT * FROM punches WHERE u_id = ?;";
@@ -58,11 +59,11 @@ var host = function (ip, dbPath) {
         });
 
         return output;
-    };
-};
+    }
+}
 
 // Security measure to prevent SQL injection
-var isValid (arg) {
+var isValid = function (arg) {
     return true;
 }
 

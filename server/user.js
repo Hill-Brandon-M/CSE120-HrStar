@@ -1,4 +1,4 @@
-exports = function (u_id, firstname, lastname, username, password, email, o_id, s_id) {
+module.exports = function (u_id, firstname, lastname, username, password, email, o_id, s_id) {
     this.u_id = u_id;
 
     this.firstname = firstname;
