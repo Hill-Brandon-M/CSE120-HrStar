@@ -57,6 +57,8 @@ app.use(session({
     }
 }));
 
+// TODO: App routing
+
 var server = http.createServer(app);
 var io = socket(server);
 
