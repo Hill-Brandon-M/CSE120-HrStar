@@ -50,7 +50,8 @@ app.use(session({
 
     secret: uuid(),
 
-    saveUninitialized: false,
+    //TODO: perhaps change for security purposes
+    saveUninitialized: false, 
 
     cookie: {
         maxAge: SESSION_TIMEOUT
@@ -62,13 +63,18 @@ app.use(session({
 var server = http.createServer(app);
 var io = socket(server);
 
+
+io.on('punch', (data) => {
+    // TODO: punch implementation
+});
+
 // Authentication handler
 auth(io, {
     authenticate: function (socket, data, {}) {
         var email = data.email;
         var password = data.password;
 
-        return (server.getUserID(email, password) !== -1);
+        return (server.getUserID(email, password) !== null);
     },
 
     postAuthenticate: function (socket, data) {
@@ -76,6 +82,9 @@ auth(io, {
     },
 
     disconnect: function (socket, data) {
+        // Remove cookie
+        socket.request.session = null;
+
         console.log("[" + socket.request.sessionID + "] disconnected...");
     }
 

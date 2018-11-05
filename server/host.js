@@ -18,7 +18,7 @@ module.exports = function (ip, dbPath) {
         this.db.get(query, [email, password], (err, tuple) => {
             if (err) {
                 console.error(err.message);
-                return -1;
+                return null;
             }
 
             return tuple.u_id;
