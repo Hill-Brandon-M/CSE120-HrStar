@@ -116,16 +116,14 @@ module.exports = function (ip, dbPath) {
         });
     }
 
-
-
-
-
-    db.close((err) => {
-        if (err) {
-            return console.error(err.message);
-        }
-        console.log('Close the database connection.');
-    })
+    this.close = function () {
+        db.close((err) => {
+            if (err) {
+                return console.error(err.message);
+            }
+            console.log('Close the database connection.');
+        });
+    }
 }
 
 // Security measure to prevent SQL injection
