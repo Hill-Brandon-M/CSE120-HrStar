@@ -10,10 +10,15 @@ const user = require('./user');
 module.exports = function (ip, dbPath) {
 
     this.ip = ip;
-    this.db = new sqlite3.Database(dbPath);
+    this.db = new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+            return console.error(err.message);
+        }
+        console.log('Connected to the HRproject SQlite database.');
+    });
 
     this.getUserID = function (email, password) {
-        let query = "SELECT u_id FROM users WHERE email = ? AND password = ?;";
+        let query = "SELECT UserID FROM Users WHERE Email = ? AND Password = ?;";
 
         this.db.get(query, [email, password], (err, tuple) => {
             if (err) {
@@ -26,7 +31,7 @@ module.exports = function (ip, dbPath) {
     }
 
     this.getUserFromID = function (userID) {
-        let query = "SELECT * FROM users WHERE u_id = ?;";
+        let query = "SELECT * FROM Users WHERE UserID = ?;";
 
         this.db.get(query, [userID], (err, tuple) => {
 
@@ -44,14 +49,14 @@ module.exports = function (ip, dbPath) {
     }
 
     this.getPunches = function (userID) {
-        let query = "SELECT * FROM punches WHERE u_id = ?;";
+        let query = "SELECT * FROM TimeSheet WHERE UserID = ?;";
 
         var output = [];
 
         this.db.each(query, [userID], (err, tuple) => {
 
             if(err) {
-                throw err;
+                return console.log(err.message);
             }
 
             output.push(tuple);
@@ -60,6 +65,67 @@ module.exports = function (ip, dbPath) {
 
         return output;
     }
+
+    this.createUser = function (userID, firstName, lastName, email, username, password, superID, orgID) {
+        let query = "INSERT INTO Users VALUES(?,?,?,?,?,?,?,?)" ;
+
+        this.db.run(query, [userID, firstName, lastName, email, username, password, superID, orgID], (err, tuple) => {
+            if (err) {
+                return console.log(err.message);
+            }
+        });
+    }
+
+    this.createMessage = function (msgID, senderID, recipientID, dateTime, subject, message, read, active, timeID) {
+        let query = "INSERT INTO Message VALUES(?,?,?,?,?,?,?,?,?);" ;
+
+        this.db.run(query, [msgID, senderID, recipientID, dateTime, subject, message, read, active, timeID], (err, tuple) => {
+            if (err) {
+                return console.log(err.message);
+            }
+        });
+    }
+
+    this.createClockPunch = function (timeID, userID, dateTime, punchType, submitTime) {
+        let query = "INSERT INTO TimeSheet VALUES(?,?,?,?,?);" ;
+
+        this.db.run(query, [timeID, userID, dateTime, punchType, submitTime], (err, tuple) => {
+            if (err) {
+                return console.log(err.message);
+            }
+        });
+    }
+
+    this.editUser = function (beforeUpdate, newUpdate, columnName, condition) {
+        let query = "UPDATE Users SET " + columnName + " = ? WHERE " + condition + " = ?;";
+
+        this.db.run(query, [beforeUpdate, newUpdate], (err, tuple) => {
+            if (err) {
+                return console.log(err.message);
+            }
+        });
+    }
+
+    this.editMessage = function (beforeUpdate, newUpdate, columnName, condition) {
+        let query = "UPDATE Message SET " + columnName + " = ? WHERE " + condition + " = ?;";
+
+        this.db.run(query, [beforeUpdate, newUpdate], (err, tuple) => {
+            if (err) {
+                return console.log(err.message);
+            }
+        });
+    }
+
+
+
+
+
+    db.close((err) => {
+        if (err) {
+            return console.error(err.message);
+        }
+        console.log('Close the database connection.');
+    })
 }
 
 // Security measure to prevent SQL injection
