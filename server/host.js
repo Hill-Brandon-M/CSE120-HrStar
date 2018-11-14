@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const time = require('time');
 const user = require('./user');
+const uuid = reuqire('uuid/v4');
 
 /*
  * host
@@ -66,18 +67,44 @@ module.exports = function (ip, dbPath) {
         return output;
     }
 
-    this.createUser = function (userID, firstName, lastName, email, username, password, superID, orgID) {
-        let query = "INSERT INTO Users VALUES(?,?,?,?,?,?,?,?)" ;
+    this.createUser = function (regCode, firstName, lastName, email, username, password) {
 
-        this.db.run(query, [userID, firstName, lastName, email, username, password, superID, orgID], (err, tuple) => {
+        let userID = uuid(); //generate userID
+
+        let verificationQuery = "SELECT * FROM regCodes WHERE regID = ?;";
+
+        var verified = false;
+        var superID;
+        var orgID;
+        this.db.get(verificationQuery, [regCode], (err, tuple) => {
+            if (err) {
+                return console.log(err.message);
+            }
+
+            verified = (tuple.regID === regCode);
+            superID = tuple.SupervisorID;
+            orgID = tuple.OrgID;
+        });
+
+        if (!verified) {
+            return false;
+        }
+
+        let creationQuery = "INSERT INTO Users VALUES(?,?,?,?,?,?,?,?);";
+
+        this.db.run(creationQuery, [userID, firstName, lastName, email, username, password, superID, orgID], (err, tuple) => {
             if (err) {
                 return console.log(err.message);
             }
         });
+
+        return true;
     }
 
-    this.createMessage = function (msgID, senderID, recipientID, dateTime, subject, message, read, active, timeID) {
+    this.createMessage = function (senderID, recipientID, dateTime, subject, message, read, active, timeID) {
         let query = "INSERT INTO Message VALUES(?,?,?,?,?,?,?,?,?);" ;
+
+        let msgID = uuid();
 
         this.db.run(query, [msgID, senderID, recipientID, dateTime, subject, message, read, active, timeID], (err, tuple) => {
             if (err) {
@@ -86,8 +113,10 @@ module.exports = function (ip, dbPath) {
         });
     }
 
-    this.createClockPunch = function (timeID, userID, dateTime, punchType, submitTime) {
+    this.createClockPunch = function (userID, dateTime, punchType, submitTime) {
         let query = "INSERT INTO TimeSheet VALUES(?,?,?,?,?);" ;
+
+        let timeID = uuid();
 
         this.db.run(query, [timeID, userID, dateTime, punchType, submitTime], (err, tuple) => {
             if (err) {
@@ -96,20 +125,20 @@ module.exports = function (ip, dbPath) {
         });
     }
 
-    this.editUser = function (beforeUpdate, newUpdate, columnName, condition) {
-        let query = "UPDATE Users SET " + columnName + " = ? WHERE " + condition + " = ?;";
+    this.editUser = function (userID, property, newVal) {
+        let query = "UPDATE Users SET " + property + " = ? WHERE UserID = ?;";
 
-        this.db.run(query, [beforeUpdate, newUpdate], (err, tuple) => {
+        this.db.run(query, [newVal, userID], (err, tuple) => {
             if (err) {
                 return console.log(err.message);
             }
         });
     }
 
-    this.editMessage = function (beforeUpdate, newUpdate, columnName, condition) {
-        let query = "UPDATE Message SET " + columnName + " = ? WHERE " + condition + " = ?;";
+    this.editMessage = function (msgID, property, newVal) {
+        let query = "UPDATE Message SET " + property + " = ? WHERE MessageID = ?;";
 
-        this.db.run(query, [beforeUpdate, newUpdate], (err, tuple) => {
+        this.db.run(query, [newVal, msgID], (err, tuple) => {
             if (err) {
                 return console.log(err.message);
             }

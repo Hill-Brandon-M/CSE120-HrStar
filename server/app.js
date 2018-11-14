@@ -18,7 +18,7 @@ const user = require('./user');
 
 // Data constants
 const DEFAULT_SESSION_TIMEOUT = 5 * 60 * 1000; // Timeout in milliseconds (5 minutes)
-const DEFAULT_PORT = 8080;
+const DEFAULT_PORT = 3000;
 const DEFAULT_DB_PATH = './database/hr.db';
 
 var SESSION_TIMEOUT = DEFAULT_SESSION_TIMEOUT;
@@ -51,7 +51,7 @@ app.use(session({
     secret: uuid(),
 
     //TODO: perhaps change for security purposes
-    saveUninitialized: false, 
+    saveUninitialized: false,
 
     cookie: {
         maxAge: SESSION_TIMEOUT
