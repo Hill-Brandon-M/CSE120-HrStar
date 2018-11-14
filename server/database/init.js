@@ -18,7 +18,7 @@ con.connect(function(err) {
 var db = new sqlite3.Database('hr.db');
 
 db.run("CREATE TABLE Users (\n" +
-    "    UserID       STRING          PRIMARY KEY\n" +
+    "    UserID       STRING       PRIMARY KEY\n" +
     "                              NOT NULL\n" +
     "                              UNIQUE,\n" +
     "    FirstName    STRING       NOT NULL,\n" +
@@ -47,7 +47,6 @@ db.run("CREATE TABLE Message (\n" +
     "    Read      BOOLEAN       NOT NULL,\n" +
     "    Active    BOOLEAN       NOT NULL,\n" +
     "    TimeID    STRING        REFERENCES TimeSheet (TimeID) \n" +
-    "                            NOT NULL\n" +
     ");");
 
 db.run("CREATE TABLE TimeSheet (\n" +
@@ -67,5 +66,13 @@ db.run("CREATE TABLE Organization (\n" +
     "                          NOT NULL,\n" +
     "    OrgName VARCHAR (255) NOT NULL,\n" +
     "    Host\n" +
+    ");\n");
+
+db.run("CREATE TABLE Registration (\n" +
+    "    RegKey       STRING PRIMARY KEY\n" +
+    "                        UNIQUE\n" +
+    "                        NOT NULL,\n" +
+    "    SupervisorID STRING REFERENCES Users (UserID) \n" +
+    "                        NOT NULL\n" +
     ");\n");
 
