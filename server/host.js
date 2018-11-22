@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const time = require('time');
 const user = require('./user');
-const uuid = reuqire('uuid/v4');
+const uuid = require('uuid/v4');
 
 /*
  * host
@@ -27,7 +27,7 @@ module.exports = function (ip, dbPath) {
                 return null;
             }
 
-            return tuple.u_id;
+            return tuple.UserID;
         });
     }
 
@@ -40,7 +40,7 @@ module.exports = function (ip, dbPath) {
                 return console.error(err.message);
             }
 
-            return new user(tuple.u_id, tuple.firstname, tuple.lastname, tuple.username, tuple.password, tuple.email, tuple.org_id, tuple.super_id);
+            return new user(tuple.UserID, tuple.FirstName, tuple.LastName, tuple.Username, tuple.Password, tuple.Email, tuple.OrgID, tuple.SupervisorID);
         });
     }
 
@@ -71,7 +71,7 @@ module.exports = function (ip, dbPath) {
 
         let userID = uuid(); //generate userID
 
-        let verificationQuery = "SELECT * FROM regCodes WHERE regID = ?;";
+        let verificationQuery = "SELECT * FROM Registration WHERE RegKey = ?;";
 
         var verified = false;
         var superID;
@@ -81,7 +81,7 @@ module.exports = function (ip, dbPath) {
                 return console.log(err.message);
             }
 
-            verified = (tuple.regID === regCode);
+            verified = (tuple.RegKey === regCode);
             superID = tuple.SupervisorID;
             orgID = tuple.OrgID;
         });
