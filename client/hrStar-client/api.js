@@ -45,7 +45,7 @@ var login = function (email, password) {
 
         } else if (data.success) {
             console.log('Login successful!');
-            window.location.href = site.protocol + "://" + site.host + "punch/" // Redirect to clock page
+            window.location.href = "../punch"; // Redirect to clock page
         } else {
             console.log('Login failed...')
         }

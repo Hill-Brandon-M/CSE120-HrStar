@@ -73,22 +73,27 @@ app.ws('/login', function (ws, req) {
             return;
         }
 
-        req.session.user = db.getUser(data.email, data.password);
-
         var result = false;
+        db.getUser(data.email, data.password).then(function (user) {
 
-        if (req.session.user) {
-            console.log("[" + req.sessionID + "] - Authenticated as user " + req.session.user.u_id);
-            result = true;
-        } else {
-            console.log("[" + req.sessionID + "] - Login attempt failed. Credentials: " + msg);
-            result = false;
-        }
+            if (user) {
+                req.session.user = user;
+                console.log("[" + req.sessionID + "] - Authenticated as user " + req.session.user.UserID);
+                result = true;
 
-        ws.send(JSON.stringify({
-            event: 'authenticated',
-            success: result
-        }));
+            } else {
+                console.log("[" + req.sessionID + "] - Login attempt failed. Credentials: " + msg);
+                result = false;
+            }
+
+            ws.send(JSON.stringify({
+                event: 'authenticated',
+                success: result
+            }));
+
+        }).catch(function (err) {
+            console.log(err.message);
+        });
     });
 });
 
