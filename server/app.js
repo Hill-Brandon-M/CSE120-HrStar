@@ -7,9 +7,6 @@ const uuid = require('uuid/v4');
 
 const http = require('http');
 
-const socket = require('socket.io');
-const auth = require('socketio-auth');
-
 const nconf = require('nconf');
 const fs = require('fs');
 
@@ -18,12 +15,14 @@ const user = require('./user');
 
 // Data constants
 const DEFAULT_SESSION_TIMEOUT = 5 * 60 * 1000; // Timeout in milliseconds (5 minutes)
-const DEFAULT_PORT = 3000;
+const DEFAULT_PORT = 80;
 const DEFAULT_DB_PATH = './database/hr.db';
+
+var SITE_PATH = 'site/test';
 
 var SESSION_TIMEOUT = DEFAULT_SESSION_TIMEOUT;
 
-var server = new host({}, DEFAULT_DB_PATH);
+var db = new host({}, DEFAULT_DB_PATH);
 
 // Generic configuration object
 const config = function(path) {
@@ -32,6 +31,7 @@ const config = function(path) {
 };
 
 var app = express();
+var expressWs = require('express-ws')(app);
 
 // Session data configuration
 app.use(session({
@@ -51,7 +51,7 @@ app.use(session({
     secret: uuid(),
 
     //TODO: perhaps change for security purposes
-    saveUninitialized: false,
+    saveUninitialized: true,
 
     cookie: {
         maxAge: SESSION_TIMEOUT
@@ -60,35 +60,37 @@ app.use(session({
 
 // TODO: App routing
 
-var server = http.createServer(app);
-var io = socket(server);
+app.use('/', express.static(SITE_PATH));
 
+app.ws('/login', function (ws, req) {
 
-io.on('punch', (data) => {
-    // TODO: punch implementation
-});
+    ws.on('message', function (msg) {
 
-// Authentication handler
-auth(io, {
-    authenticate: function (socket, data, {}) {
-        var email = data.email;
-        var password = data.password;
+        var data = JSON.parse(msg);
 
-        return (server.getUserID(email, password) !== null);
-    },
+        if (data.event !== 'authentication') {
+            console.log("[" + req.sessionID + "] - Unexpected message recieved: " + data.event);
+            return;
+        }
 
-    postAuthenticate: function (socket, data) {
-        socket.request.session.user = server.getUser(data.email, data.password);
-    },
+        req.session.user = db.getUser(data.email, data.password);
 
-    disconnect: function (socket, data) {
-        // Remove cookie
-        socket.request.session = null;
+        var result = false;
 
-        console.log("[" + socket.request.sessionID + "] disconnected...");
-    }
+        if (req.session.user) {
+            console.log("[" + req.sessionID + "] - Authenticated as user " + req.session.user.u_id);
+            result = true;
+        } else {
+            console.log("[" + req.sessionID + "] - Login attempt failed. Credentials: " + msg);
+            result = false;
+        }
 
+        ws.send(JSON.stringify({
+            event: 'authenticated',
+            success: result
+        }));
+    });
 });
 
 // Run server
-server.listen(DEFAULT_PORT);
+app.listen(DEFAULT_PORT);

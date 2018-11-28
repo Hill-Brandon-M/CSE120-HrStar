@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html lang = "en">
+<head>
+    <title>Login Test</title>
+    <meta charset = "UTF-8" />
+</head>
+<body>
+    <script src="/js/api.js"></script>
+
+    <h1>Login Test</h1>
+    <form>
+        <fieldset>
+            <legend>Login</legend>
+            <p>
+                <label>Email</label>
+                <input
+                    type = "text"
+                    id = "email"
+                    value = ""
+                    name = "email"
+                />
+            </p>
+            <p>
+                <label>Password</label>
+                <input
+                    type = "password"
+                    id = "password"
+                    value = ""
+                    name = "password"
+                />
+            </p>
+        </fieldset>
+    </form>
+
+    <script>
+        function process () {
+            email = document.getElementById('email').value;
+            password = document.getElementById('password').value;
+
+            login(email, password);
+        }
+    </script>
+    <button onclick="process()">SUBMIT</button>
+
+</body>
+</html>

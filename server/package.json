@@ -4,8 +4,8 @@
   "description": "Server application for CSE120 project",
   "main": "app.js",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/Hill-Brandon-M/CSE120-HrStar.git"
+    "type": "git",
+    "url": "https://github.com/Hill-Brandon-M/CSE120-HrStar.git"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,26 +17,26 @@
       "email": "mejino55@gmail.com",
       "url": "https://github.com/Hill-Brandon-M"
     },
-
     {
       "name": "David Gomez",
       "email": "",
-      "url": "",
+      "url": ""
     },
-
     {
       "name": "Mekuanent Alemu",
       "email": "",
       "url": ""
-    },
+    }
   ],
   "license": "Unlicense",
   "dependencies": {
     "express": "^4.16.4",
     "express-session": "^1.15.6",
+    "express-ws": "^4.0.0",
     "nconf": "^0.10.0",
     "session-file-store": "^1.2.0",
     "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1",
     "socketio-auth": "^0.1.1",
     "sqlite3": "^4.0.3",
     "time": "^0.12.0",

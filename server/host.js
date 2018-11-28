@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const time = require('time');
 const user = require('./user');
-const uuid = reuqire('uuid/v4');
+const uuid = require('uuid/v4');
 
 /*
  * host
@@ -27,7 +27,12 @@ module.exports = function (ip, dbPath) {
                 return null;
             }
 
-            return tuple.u_id;
+            if (tuple) {
+                return tuple.u_id;
+            } else {
+                return null;
+            }
+
         });
     }
 
@@ -40,13 +45,23 @@ module.exports = function (ip, dbPath) {
                 return console.error(err.message);
             }
 
-            return new user(tuple.u_id, tuple.firstname, tuple.lastname, tuple.username, tuple.password, tuple.email, tuple.org_id, tuple.super_id);
+            if (tuple) {
+                return new user(tuple.u_id, tuple.firstname, tuple.lastname, tuple.username, tuple.password, tuple.email, tuple.org_id, tuple.super_id);
+            } else {
+                return null;
+            }
+
         });
     }
 
     this.getUser = function (email, password) {
         var userID = this.getUserID(email, password);
-        return this.getUserFromID(userID);
+
+        if (userID) {
+            return this.getUserFromID(userID);
+        } else {
+            return null;
+        }        
     }
 
     this.getPunches = function (userID) {

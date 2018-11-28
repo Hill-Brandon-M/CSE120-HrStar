@@ -1,7 +1,6 @@
 // Data cosntants
 const site = window.location;
 
-// Generate WebSocket URI
 var protocol = "";
 if (site.protocol === "https") {
     protocol = "wss";
