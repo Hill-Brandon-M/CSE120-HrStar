@@ -27,12 +27,7 @@ module.exports = function (ip, dbPath) {
                 return null;
             }
 
-            if (tuple) {
-                return tuple.u_id;
-            } else {
-                return null;
-            }
-
+            return tuple.UserID;
         });
     }
 
@@ -45,12 +40,7 @@ module.exports = function (ip, dbPath) {
                 return console.error(err.message);
             }
 
-            if (tuple) {
-                return new user(tuple.u_id, tuple.firstname, tuple.lastname, tuple.username, tuple.password, tuple.email, tuple.org_id, tuple.super_id);
-            } else {
-                return null;
-            }
-
+            return new user(tuple.UserID, tuple.FirstName, tuple.LastName, tuple.Username, tuple.Password, tuple.Email, tuple.OrgID, tuple.SupervisorID);
         });
     }
 
@@ -61,7 +51,7 @@ module.exports = function (ip, dbPath) {
             return this.getUserFromID(userID);
         } else {
             return null;
-        }        
+        }
     }
 
     this.getPunches = function (userID) {
@@ -86,7 +76,7 @@ module.exports = function (ip, dbPath) {
 
         let userID = uuid(); //generate userID
 
-        let verificationQuery = "SELECT * FROM regCodes WHERE regID = ?;";
+        let verificationQuery = "SELECT * FROM Registration WHERE RegKey = ?;";
 
         var verified = false;
         var superID;
@@ -96,7 +86,7 @@ module.exports = function (ip, dbPath) {
                 return console.log(err.message);
             }
 
-            verified = (tuple.regID === regCode);
+            verified = (tuple.RegKey === regCode);
             superID = tuple.SupervisorID;
             orgID = tuple.OrgID;
         });

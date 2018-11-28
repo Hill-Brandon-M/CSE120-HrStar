@@ -74,5 +74,7 @@ db.run("CREATE TABLE Registration (\n" +
     "                        NOT NULL,\n" +
     "    SupervisorID STRING REFERENCES Users (UserID) \n" +
     "                        NOT NULL\n" +
+    "    OrgID        STRING REFERENCES Organization (OrgID) \n" +
+    "                        NOT NULL\n" +
     ");\n");
 
