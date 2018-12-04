@@ -29,8 +29,10 @@ module.exports = function (ip, dbPath) {
                     if (err) {
                         reject(err);
 
-                    } else {
+                    } else if (tuple){
                         resolve(tuple.UserID);
+                    } else {
+                        reject("No user with these credentials!");
                     }
 
                 });

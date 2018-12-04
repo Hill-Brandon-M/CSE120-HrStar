@@ -102,7 +102,7 @@ app.ws('/login', function (ws, req) {
             }));
 
         }).catch(function (err) {
-            console.log(err.message);
+            console.log(err);
         });
     });
 });
