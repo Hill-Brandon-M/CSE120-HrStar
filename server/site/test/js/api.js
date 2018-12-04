@@ -59,6 +59,29 @@ var punch = function (type, time) {
         type: type,
         time: time,
     }));
+
+    var old_handle = socket.onmessage;
+
+    socket.onmessage = function (msg) {
+        var data = JSON.parse(msg.data);
+
+        if (data.event === 'punched') {
+            if (data.success) {
+                console.log('SUCCESS!');
+            } else {
+                console.log('FAILED!');
+            }
+
+        } else if (data.event === 'unauthorized') {
+            console.log('Credentials are invalid, redirecting to login...');
+            window.location.href = "../login";
+
+        } else if (data.event === 'error') {
+            console.log('Server error... Please contact site administrator for help...');
+        } else {
+            socket.onmessage = old_handle;
+        }
+    };
 };
 
 var punchIn = function (time = new Date()) {

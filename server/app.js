@@ -24,12 +24,6 @@ var SESSION_TIMEOUT = DEFAULT_SESSION_TIMEOUT;
 
 var db = new host({}, DEFAULT_DB_PATH);
 
-// Generic configuration object
-const config = function(path) {
-    // TODO: create generic configuration
-
-};
-
 var app = express();
 var expressWs = require('express-ws')(app);
 
@@ -62,6 +56,16 @@ app.use(session({
 
 app.use('/', express.static(SITE_PATH));
 
+app.get('/logout', function(req, res) {
+    req.session.destroy(function (err) {
+        if (err) {
+            console.log(err.message);
+        } else {
+        }
+    });
+    res.redirect('/');
+});
+
 app.ws('/login', function (ws, req) {
 
     ws.on('message', function (msg) {
@@ -81,6 +85,12 @@ app.ws('/login', function (ws, req) {
                 console.log("[" + req.sessionID + "] - Authenticated as user " + req.session.user.UserID);
                 result = true;
 
+                req.session.save(function (err) {
+                    if (err) {
+                        console.log(err.message);
+                    }
+                });
+
             } else {
                 console.log("[" + req.sessionID + "] - Login attempt failed. Credentials: " + msg);
                 result = false;
@@ -94,6 +104,37 @@ app.ws('/login', function (ws, req) {
         }).catch(function (err) {
             console.log(err.message);
         });
+    });
+});
+
+app.ws('/punch', function (ws, req) {
+    ws.on('message', function (msg) {
+        var data = JSON.parse(msg);
+
+        if (data.event !== 'punch') {
+            console.log("[" + req.sessionID + "] - Unexpected message recieved: " + data.event);
+            return;
+        }
+
+        if (!(req.session.user.UserID)) {
+            console.log("[" + req.sessionID + "] - Attempted to clock in without credentials.");
+            ws.send(JSON.stringify({event: 'unauthorized'}));
+            return;
+        }
+
+        db.createClockPunch(req.session.user.UserID, data.time, data.type, new Date().toISOString().slice(0, 19).replace('T', ' ')).then(function(success) {
+
+            ws.send(JSON.stringify({
+                event: 'punched',
+                success: success
+            }));
+
+        }).catch(function (err) {
+            console.log(err.message);
+            ws.send(JSON.stringify({event: 'error'}));
+        });
+
+
     });
 });
 

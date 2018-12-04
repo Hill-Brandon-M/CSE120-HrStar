@@ -62,16 +62,16 @@ module.exports = function (ip, dbPath) {
             var that = this;
             return new Promise(function (resolve, reject) {
                 that.getUserID(email, password)
-                .then(function (UserID) {
-                    resolve(that.getUserFromID(UserID, that.db));
-                })
-                .then(function (user) {
-                    resolve(user);
+                    .then(function (UserID) {
+                        resolve(that.getUserFromID(UserID, that.db));
+                    })
+                    .then(function (user) {
+                        resolve(user);
 
-                }).catch(function (err) {
-                    console.log(err);
-                    resolve(null);
-                });
+                    }).catch(function (err) {
+                        console.log(err);
+                        resolve(null);
+                    });
             });
 
         },
@@ -145,10 +145,16 @@ module.exports = function (ip, dbPath) {
 
             let timeID = uuid();
 
-            this.db.run(query, [timeID, userID, dateTime, punchType, submitTime], (err, tuple) => {
-                if (err) {
-                    return console.log(err.message);
-                }
+            var that = this;
+            return new Promise(function (resolve, reject) {
+                that.db.run(query, [timeID, userID, dateTime, punchType, submitTime], (err, tuple) => {
+                    if (err) {
+                        console.log(err.message);
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                });
             });
         },
 
