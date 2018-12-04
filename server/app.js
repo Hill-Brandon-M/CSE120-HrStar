@@ -129,6 +129,7 @@ app.ws('/punch', function (ws, req) {
                 success: success
             }));
 
+            console.log("[" + req.sessionID + "] - punched" + data.type + "at " + data.time + ".");
         }).catch(function (err) {
             console.log(err.message);
             ws.send(JSON.stringify({event: 'error'}));
