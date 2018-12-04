@@ -19,7 +19,7 @@ socket.onopen = function () {
 };
 
 socket.onclose = function() {
-    console.log("Socket connection closed...")
+    console.log("Socket connection closed...");
 };
 
 // User authenticator
