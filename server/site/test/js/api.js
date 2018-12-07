@@ -52,6 +52,36 @@ var login = function (email, password) {
     };
 };
 
+var signup = function (regCode, firstName, lastName, email, username, password) {
+    console.log("Creating account...");
+
+    socket.send(JSON.stringify({
+        event: 'signup',
+        regCode: regCode,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        username: username,
+        password: password
+    }));
+
+    var old_handle = socket.onmessage;
+
+    socket.onmessage = function (msg) {
+        var data = JSON.parse(msg.data);
+
+        if (data.event !== 'signed') {
+            socket.onmessage = old_handle;
+
+        } else if (data.success) {
+            console.log('Signup sucessful!');
+            window.location.href = "../login";
+        } else {
+            console.log('Signup failed...');
+        }
+    }
+};
+
 var punch = function (type, time) {
     // TODO: Punch routine
     socket.send(JSON.stringify({

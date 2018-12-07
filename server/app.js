@@ -57,12 +57,10 @@ app.use(session({
 app.use('/', express.static(SITE_PATH));
 
 app.get('/logout', function(req, res) {
-    req.session.destroy(function (err) {
-        if (err) {
-            console.log(err.message);
-        } else {
-        }
-    });
+    req.session = null;
+
+    console.log("[" + req.sessionID + "] - Logged out.");
+
     res.redirect('/');
 });
 
@@ -138,6 +136,33 @@ app.ws('/punch', function (ws, req) {
 
     });
 });
+
+app.ws('/signup', function(ws, req) {
+    ws.on('message', function(msg) {
+        var data = JSON.parse(msg);
+
+        if (data.event !== 'signup') {
+            console.log("[" + req.sessionID + "] - Unexpected message recieved: " + data.event);
+            return;
+        }
+
+        db.createUser(data.regCode, data.firstName, data.lastName, data.email, data.username, data.password)
+            .then(function (success) {
+                ws.send(JSON.stringify({
+                    event: 'signed',
+                    success: success
+                }));
+
+                if (success) {
+                    console.log("[" + req.session.sessionID + "] - created a new user: " + data.firstName + " " + data.lastName);
+
+                } else {
+                    console.log("[" + req.session.sessionID + "] - Account creation failed... data: " + JSON.stringify(data));
+                }
+            });
+
+    });
+})
 
 // Run server
 app.listen(DEFAULT_PORT);

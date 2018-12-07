@@ -100,34 +100,75 @@ module.exports = function (ip, dbPath) {
 
             let userID = uuid(); //generate userID
 
-            let verificationQuery = "SELECT * FROM Registration WHERE RegKey = ?;";
 
             var verified = false;
             var superID;
             var orgID;
-            this.db.get(verificationQuery, [regCode], (err, tuple) => {
-                if (err) {
-                    return console.log(err.message);
-                }
 
-                verified = (tuple.RegKey === regCode);
-                superID = tuple.SupervisorID;
-                orgID = tuple.OrgID;
+            var that = this;
+
+            return new Promise(function (resolve, reject) {
+                let verificationQuery = "SELECT * FROM Registration WHERE RegKey = ?;";
+
+                that.db.get(verificationQuery, [regCode], (err, tuple) => {
+                    if (err) {
+                        console.log(err.message);
+                        reject(err);
+
+                    } else if (tuple == null) {
+                        verified = false;
+                        superID = null;
+
+                    } else {
+                        verified = (tuple.RegKey === regCode);
+                        superID = tuple.SupervisorID;
+                    }
+
+                    resolve();
+                });
+
+            }).then(function () {
+                var orgQuery = "SELECT OrgID FROM Users WHERE UserID = ?;"
+
+
+                return new Promise(function (resolve, reject) {
+                    if (!verified) {
+                        resolve(false);
+                    }
+                    
+                    that.db.get(orgQuery, [superID], function (err, data) {
+                        if (err) {
+                            reject(err);
+                        } else if (data == null) {
+                            resolve(null);
+                        } else {
+                            resolve(data.OrgID);
+                        }
+                    });
+                });
+
+
+            }).then(function (orgID) {
+                let creationQuery = "INSERT INTO Users VALUES(?,?,?,?,?,?,?,?);";
+
+                return new Promise(function (resolve, reject) {
+
+                    if (orgID == null) {
+                        resolve(false);
+                    }
+
+                    that.db.run(creationQuery, [userID, firstName, lastName, email, username, password, superID, orgID], (err, tuple) => {
+                        if (err) {
+                            console.log(err.message);
+                            resolve(false);
+                        } else {
+                            resolve(true);
+                        }
+                    });
+
+                });
+
             });
-
-            if (!verified) {
-                return false;
-            }
-
-            let creationQuery = "INSERT INTO Users VALUES(?,?,?,?,?,?,?,?);";
-
-            this.db.run(creationQuery, [userID, firstName, lastName, email, username, password, superID, orgID], (err, tuple) => {
-                if (err) {
-                    return console.log(err.message);
-                }
-            });
-
-            return true;
         },
 
         createMessage: function (senderID, recipientID, dateTime, subject, message, read, active, timeID) {
