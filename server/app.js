@@ -114,6 +114,12 @@ app.ws('/punch', function (ws, req) {
             return;
         }
 
+        if (req.session.user == null) {
+            console.log("[" + req.sessionID + "] - Attempted to clock in without credentials.");
+            ws.send(JSON.stringify({event: 'unauthorized'}));
+            return;
+        }
+
         if (!(req.session.user.UserID)) {
             console.log("[" + req.sessionID + "] - Attempted to clock in without credentials.");
             ws.send(JSON.stringify({event: 'unauthorized'}));
