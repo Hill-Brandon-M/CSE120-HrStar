@@ -2,7 +2,8 @@
 const express = require('express');
 
 const session = require('express-session');
-const fileStore = require('session-file-store')(session);
+const LokiStore = require('connect-loki')(session);
+
 const uuid = require('uuid/v4');
 
 const http = require('http');
@@ -17,6 +18,7 @@ const user = require('./user');
 const DEFAULT_SESSION_TIMEOUT = 5 * 60 * 1000; // Timeout in milliseconds (5 minutes)
 const DEFAULT_PORT = 80;
 const DEFAULT_DB_PATH = './database/hr.db';
+const DEFAULT_SESSION_PATH = './database/sessions.db';
 
 var SITE_PATH = 'site/test';
 
@@ -38,9 +40,11 @@ app.use(session({
         return id;
     },
 
-    resave: false,
+    resave: true,
 
-    store: new fileStore(),
+    store: new LokiStore({
+        path: DEFAULT_SESSION_PATH
+    }),
 
     secret: uuid(),
 
@@ -126,7 +130,7 @@ app.ws('/punch', function (ws, req) {
             return;
         }
 
-        db.createClockPunch(req.session.user.UserID, data.time, data.type, new Date().toISOString().slice(0, 19).replace('T', ' ')).then(function(success) {
+        db.createClockPunch(req.session.user.UserID, data.time.replace('T', ' '), data.type, new Date().toISOString().slice(0, 19).replace('T', ' ')).then(function(success) {
 
             ws.send(JSON.stringify({
                 event: 'punched',
