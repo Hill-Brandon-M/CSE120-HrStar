@@ -57,3 +57,11 @@ typings/
 # dotenv environment variables file
 .env
 
+# session files
+server/sessions/**
+
+# test synchronization
+server/site/test/js/_SYNCAPP/**
+
+# databases
+server/database/*.db

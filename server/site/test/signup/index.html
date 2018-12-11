@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html lang = "en">
+<head>
+    <title>Login Test</title>
+    <meta charset = "UTF-8" />
+</head>
+<body>
+    <script src="/js/api.js"></script>
+
+    <h1>Login Test</h1>
+    <form>
+        <fieldset>
+            <legend>Login</legend>
+            <p>
+                <label>Email</label>
+                <input
+                    type = "text"
+                    id = "email"
+                    value = ""
+                    name = "email"
+                />
+            </p>
+            <p>
+                <label>Password</label>
+                <input
+                    type = "password"
+                    id = "password"
+                    value = ""
+                    name = "password"
+                />
+            </p>
+            <p>
+                <label>Username</label>
+                <input
+                    type = "text"
+                    id = "username"
+                    value = ""
+                    name = "username"
+                />
+            </p>
+            <p>
+                <label>First name</label>
+                <input
+                    type = "text"
+                    id = "firstname"
+                    value = ""
+                    name = "firstname"
+                />
+            </p>
+            <p>
+                <label>Last name</label>
+                <input
+                    type = "text"
+                    id = "lastname"
+                    value = ""
+                    name = "lastname"
+                />
+            </p>
+            <p>
+                <label>Registration code</label>
+                <input
+                    type = "text"
+                    id = "regCode"
+                    value = ""
+                    name = "regCode"
+                />
+            </p>
+        </fieldset>
+    </form>
+
+    <script>
+        function process () {
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+            var username = document.getElementById('username').value;
+            var firstname = document.getElementById('firstname').value;
+            var lastname = document.getElementById('lastname').value;
+            var regCode = document.getElementById('regCode').value;
+
+            signup(regCode, firstname, lastname, email, username, password);
+        }
+    </script>
+    <button onclick="process()">SUBMIT</button>
+
+</body>
+</html>
