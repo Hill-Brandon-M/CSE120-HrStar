@@ -1,0 +1,1 @@
+DROP TABLE punches, people, users, tokens;
