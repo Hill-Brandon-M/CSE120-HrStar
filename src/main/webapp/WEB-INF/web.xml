@@ -8,7 +8,7 @@
   	<servlet-name>HRStarServlet</servlet-name>
   	<display-name>HRStarServlet</display-name>
   	<description></description>
-  	<servlet-class>com.revature.hr.HRStarServlet</servlet-class>
+  	<servlet-class>HRStarServlet</servlet-class>
   </servlet>
   <servlet-mapping>
   	<servlet-name>HRStarServlet</servlet-name>
