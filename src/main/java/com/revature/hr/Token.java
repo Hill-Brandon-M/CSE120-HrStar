@@ -29,8 +29,13 @@ public class Token {
 		this.expires = expires;
 		this.value = value;
 	}
-
 	
+	public Token (Type type, Timestamp expires, String value) {
+		this.type = type;
+		this.expires = expires;
+		this.value = value;
+	}
+
 	public Timestamp getExpires () {
 	
 		return expires;

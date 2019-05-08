@@ -27,9 +27,12 @@ public class User {
 	public User (String username, String password) {
 		this(null, username, password, null, null, null);
 	}
-
-
 	
+	public User (String username, String password, Token token) {
+		this(null, username, password, token, null, null);
+	}
+
+
 	public Integer getId () {
 	
 		return id;
