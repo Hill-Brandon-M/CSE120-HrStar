@@ -12,23 +12,23 @@ public class ClockPunch {
 	}
 	
 	private Integer id;
-	private User maker;
+	private Integer u_id;
 	private Type type;
 	private Timestamp punchTime;
 	private Timestamp submitTime;
 	private State status;
 	
-	public ClockPunch (Integer id, User maker, Type type, Timestamp punchTime, Timestamp submitTime, State status) {
+	public ClockPunch (Integer id, Integer u_id, Type type, Timestamp punchTime, Timestamp submitTime, State status) {
 		this.id = id;
-		this.maker = maker;
+		this.u_id = u_id;
 		this.type = type;
 		this.punchTime = punchTime;
 		this.submitTime = submitTime;
 		this.status = status;
 	}
 
-	public ClockPunch (User maker, Type type, Timestamp punchTime, Timestamp submitTime, State status) {
-		this(null, maker, type, punchTime, submitTime, status);
+	public ClockPunch (Integer u_id, Type type, Timestamp punchTime, Timestamp submitTime, State status) {
+		this(null, u_id, type, punchTime, submitTime, status);
 	}
 
 	
@@ -38,9 +38,8 @@ public class ClockPunch {
 	}
 
 	
-	public User getMaker () {
-	
-		return maker;
+	public Integer getU_id () {
+		return u_id;
 	}
 
 	

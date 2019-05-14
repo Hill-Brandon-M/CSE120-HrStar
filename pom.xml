@@ -5,8 +5,15 @@
   <artifactId>HRStar</artifactId>
   <packaging>war</packaging>
   <version>0.0.1-SNAPSHOT</version>
-  <name>HRStar Webapp</name>
+  <name>HRStar API</name>
   <url>http://maven.apache.org</url>
+  
+  <properties>
+  	<maven.compiler.source>1.8</maven.compiler.source>
+  	<maven.compiler.target>1.8</maven.compiler.target>
+  	<jersey.version>2.26</jersey.version>
+  </properties>
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -19,13 +26,49 @@
 		<artifactId>servlet-api</artifactId>
 		<version>2.5</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+	<dependency>
+		<groupId>org.postgresql</groupId>
+		<artifactId>postgresql</artifactId>
+		<version>42.2.5</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
+	<dependency>
+		<groupId>org.glassfish.jersey.core</groupId>
+		<artifactId>jersey-common</artifactId>
+		<version>${jersey.version}</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-server -->
+	<dependency>
+		<groupId>org.glassfish.jersey.core</groupId>
+		<artifactId>jersey-server</artifactId>
+		<version>${jersey.version}</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-client -->
+	<dependency>
+		<groupId>org.glassfish.jersey.core</groupId>
+		<artifactId>jersey-client</artifactId>
+		<version>${jersey.version}</version>
+	</dependency>
+
+	<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.containers/jersey-container-servlet -->
+	<dependency>
+		<groupId>org.glassfish.jersey.containers</groupId>
+		<artifactId>jersey-container-servlet</artifactId>
+		<version>${jersey.version}</version>
+	</dependency>
+
+	<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.inject/jersey-hk2 -->
+	<dependency>
+		<groupId>org.glassfish.jersey.inject</groupId>
+		<artifactId>jersey-hk2</artifactId>
+		<version>${jersey.version}</version>
+	</dependency>
+	
   </dependencies>
   <build>
     <finalName>HRStar</finalName>
   </build>
   
-  <properties>
-  	<maven.compiler.source>1.8</maven.compiler.source>
-  	<maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
+  
 </project>

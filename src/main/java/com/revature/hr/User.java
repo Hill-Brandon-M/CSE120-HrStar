@@ -7,31 +7,23 @@ public class User {
 	private Integer id;
 	private String username;
 	private String password;
-	private Token token;
-	private ArrayList<User> subordinates;
 	private Person personalData;
+	private Integer super_id;
 	
 	
-	public User (Integer id, String username, String password, Token token, ArrayList <User> subordinates,
-				 Person personalData) {
+	public User (Integer id, String username, String password, Person personalData, Integer super_id) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.password = password;
-		this.token = token;
-		this.subordinates = subordinates;
 		this.personalData = personalData;
+		this.super_id = super_id;
 	}
 
 
-	public User (String username, String password) {
-		this(null, username, password, null, null, null);
+	public User (String username, String password, Integer super_id) {
+		this(null, username, password, null, super_id);
 	}
-	
-	public User (String username, String password, Token token) {
-		this(null, username, password, token, null, null);
-	}
-
 
 	public Integer getId () {
 	
@@ -72,36 +64,6 @@ public class User {
 	
 		this.password = password;
 	}
-
-
-	
-	public Token getToken () {
-	
-		return token;
-	}
-
-
-	
-	public void setToken (Token token) {
-	
-		this.token = token;
-	}
-
-
-	
-	public ArrayList <User> getSubordinates () {
-	
-		return subordinates;
-	}
-
-
-	
-	public void setSubordinates (ArrayList <User> subordinates) {
-	
-		this.subordinates = subordinates;
-	}
-
-
 	
 	public Person getPersonalData () {
 	
@@ -113,6 +75,19 @@ public class User {
 	public void setPersonalData (Person personalData) {
 	
 		this.personalData = personalData;
+	}
+
+
+	
+	public Integer getSuper_id () {
+	
+		return super_id;
+	}
+
+	
+	public void setSuper_id (Integer super_id) {
+	
+		this.super_id = super_id;
 	}
 	
 	

@@ -5,13 +5,23 @@
 <web-app>
   <display-name>HR*</display-name>
   <servlet>
-  	<servlet-name>HRStarServlet</servlet-name>
-  	<display-name>HRStarServlet</display-name>
-  	<description></description>
-  	<servlet-class>HRStarServlet</servlet-class>
+  	<servlet-name>HRStar</servlet-name>
+  	<display-name>HRStar</display-name>
+  	<description>Jersey Container for the HRStar application.</description>
+  	<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+  	
+    <init-param>
+        <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
+        <param-value>true</param-value>
+   	</init-param>
+   	<init-param>
+   		<param-name>javax.ws.rs.Application</param-name>
+   		<param-value>HRStarService</param-value>
+   	</init-param>
+   	<load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-mapping>
-  	<servlet-name>HRStarServlet</servlet-name>
-  	<url-pattern>/HRStarServlet</url-pattern>
+  	<servlet-name>HRStar</servlet-name>
+  	<url-pattern>/HRStar/*</url-pattern>
   </servlet-mapping>
 </web-app>
