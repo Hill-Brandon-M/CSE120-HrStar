@@ -69,6 +69,12 @@ public class Token implements Serializable{
 	
 		return value;
 	}
+
+	public void setValue (String value) {
+
+		this.value = value;
+		
+	}
 	
 	
 		

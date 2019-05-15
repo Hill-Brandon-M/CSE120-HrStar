@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class HRStarDatabase {
 	
@@ -50,13 +51,14 @@ public class HRStarDatabase {
 		return null;
 	}
 	
-	public User getUser (String t_value) {
+	public User getUser (String t_value, Token.Type type) {
 		// User-Token search
 		
 		try {
 			PreparedStatement s = this.queries.get("GET_USER_TOKEN_BY_TOKEN_VALUE");
 			
 			s.setString(1, t_value);
+			s.setString(2, type.toString());
 			
 			ResultSet rs = s.executeQuery();
 			
@@ -119,13 +121,14 @@ public class HRStarDatabase {
 		return new ArrayList<>();
 	}
 	
-	public Token getToken (String value) {
+	public Token getToken (String value, Token.Type type) {
 		// Token search
 		
 		try {
 			PreparedStatement s = this.queries.get("GET_USER_TOKEN_BY_TOKEN_VALUE");
 			
 			s.setString(1, value);
+			s.setString(2, type.toString());
 			
 			ResultSet rs = s.executeQuery();
 			
@@ -134,13 +137,23 @@ public class HRStarDatabase {
 			if (results.isEmpty())
 				return null;
 			
-			return results.get(0);
+			Token t = results.get(0);
+			
+			// If token has already expired, return null
+			if (t.getExpires().before(new Timestamp(System.currentTimeMillis())))
+				return null;
+			
+			return t;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
 		return null;
+	}
+	
+	public Token getToken (String value) {
+		return getToken(value, Token.Type.AUTHENTICATION);
 	}
 	
 	public Token getToken (String username, String password) {
@@ -159,7 +172,9 @@ public class HRStarDatabase {
 			if (results.isEmpty())
 				return null;
 			
-			return results.get(0);
+			Token t = results.get(0);
+			
+			return refreshToken(t);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -168,13 +183,13 @@ public class HRStarDatabase {
 		return null;
 	}
 	
-	public ArrayList<ClockPunch> getPunches (User u, Date since) {
+	public ArrayList<ClockPunch> getPunches (Integer u_id, Date since) {
 		// Punch search by user id and date
 		
 		try {
 			PreparedStatement s = this.queries.get("GET_PUNCHES_BY_USER_DATE");
 			
-			s.setInt(1, u.getId());
+			s.setInt(1, u_id);
 			s.setTimestamp(2, new Timestamp(since.getTime()));
 			
 			ResultSet rs = s.executeQuery();
@@ -190,12 +205,15 @@ public class HRStarDatabase {
 		return new ArrayList<>();
 	}
 	
-	public ArrayList<ClockPunch> getPunches (User u) {
-		return this.getPunches(u, new Date(0));
+	public ArrayList<ClockPunch> getPunches (Integer u_id) {
+		return this.getPunches(u_id, new Date(0));
 	}
 	
 	public Person getPersonalData (Integer u_id) {
 		// Personal data search
+		
+		if (u_id == null)
+			return null;
 		
 		try {
 			PreparedStatement s = this.queries.get("GET_PERSONAL_DATA_BY_USER_ID");
@@ -284,21 +302,21 @@ public class HRStarDatabase {
 	public Token createUser(String username, String password, String reg_token) {
 		// User initialization
 		
-		Token t = this.getToken(reg_token);
+		Token t = this.getToken(reg_token, Token.Type.REGISTRATION);
 		
-		if (t ==  null)
+		if (t ==  null || t.getExpires().before(new Timestamp(System.currentTimeMillis())))
 			return null;
 		
-		User supervisor = this.getUser(t.getValue());
-		
-		if (supervisor == null)
-			return null;
-		
-		User newUser = new User(username, password, supervisor.getId());
+		User newUser = new User(username, password, t.getU_id());
 		
 		Integer id = this.storeUser(newUser);
 		
-		return this.createToken(id, Token.Type.AUTHENTICATION);
+		Token output = this.createToken(id, Token.Type.AUTHENTICATION);
+		
+		if(output != null)
+			this.invalidateToken(reg_token, Token.Type.REGISTRATION);
+		
+		return output;
 	}
 	
 	public Token createToken (Integer user_id, Token.Type type) {
@@ -317,7 +335,7 @@ public class HRStarDatabase {
 			if (results.isEmpty())
 				return null;
 			
-			return results.get(0);
+			return extendToken(results.get(0), 1000 * 60 * 15);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -326,14 +344,27 @@ public class HRStarDatabase {
 		return null;		
 	}
 	
-	public void invalidateToken (Token t) {
+	public void invalidateToken (String t_value, Token.Type type) {
+		Token t = this.getToken(t_value, type);
 		this.extendToken(t, 0);
 	}
 	
-	public void extendToken (Token t, long interval) {
+	public Token refreshToken (Token t) {
+		
+		if (t == null)
+			return null;
+		
+		t.setValue(genUUID());
+		
+		Token output = updateToken(t);
+		extendToken(output, 1000 * 60 * 5);
+		return output;
+	}
+	
+	public Token extendToken (Token t, long interval) {
 		// Token time extension
 		t.setExpires(new Timestamp(System.currentTimeMillis() + interval));
-		this.updateToken(t);
+		return this.updateToken(t);
 	}
 	
 	private Token updateToken (Token t) {
@@ -360,6 +391,11 @@ public class HRStarDatabase {
 		}
 		
 		return null;
+	}
+	
+	private static String genUUID () {
+		UUID output = UUID.randomUUID();
+		return output.toString();
 	}
 	
 	private static ArrayList<User> parseUsers (ResultSet rs) {
@@ -518,6 +554,8 @@ public class HRStarDatabase {
 			this.queries.put("CREATE_PUNCH", this.conn.prepareStatement(SQL_CREATE_PUNCH, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
 			this.queries.put("UPDATE_PUNCH", this.conn.prepareStatement(SQL_UPDATE_PUNCH, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
 			
+			this.queries.put("CREATE_PERSONAL_DATA", this.conn.prepareStatement(SQL_CREATE_PERSONAL_DATA));
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -534,11 +572,11 @@ public class HRStarDatabase {
 	
 	// SQL
 	private static String SQL_GET_USER_TOKEN_BY_CREDENTIALS = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE u_username = ? AND u_password = ? AND t_type = '" + Token.Type.AUTHENTICATION.toString() + "';";
-	private static String SQL_GET_USER_TOKEN_BY_TOKEN_VALUE = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE t_value = ?;";
+	private static String SQL_GET_USER_TOKEN_BY_TOKEN_VALUE = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE t_value = ? AND CURRENT_TIMESTAMP < t_expires AND t_type = ?;";
 	private static String SQL_GET_USER_TOKEN_BY_USER_ID = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE u_id = ?;";
 	private static String SQL_GET_USER_BY_SUPERVISOR_ID = "SELECT * FROM users WHERE u_super_u_id = ?;";
 	
-	private static String SQL_GET_PUNCHES_BY_USER_DATE = "SELECT * FROM punches WHERE punch_u_id = ? AND punch_time > ? ORDER BY punch_time ASC;";	
+	private static String SQL_GET_PUNCHES_BY_USER_DATE = "SELECT * FROM punches WHERE punch_u_id = ? AND punch_time > ? ORDER BY punch_time DESC;";	
 	private static String SQL_GET_PERSONAL_DATA_BY_USER_ID = "SELECT * FROM people WHERE p_u_id = ?;";
 	
 	private static String SQL_STORE_USER = 
@@ -554,5 +592,26 @@ public class HRStarDatabase {
   
 	private static String SQL_CREATE_PUNCH = "INSERT INTO punches (punch_u_id, punch_type, punch_time, punch_submitted, punch_status) VALUES (?,?,?,?,?);";
 	private static String SQL_UPDATE_PUNCH = "UPDATE punches SET punch_time = ?, punch_status = ? WHERE punch_id = ?;";
+	
+	private static String SQL_CREATE_PERSONAL_DATA = "INSERT INTO people (p_u_id, p_firstname, p_lastname) VALUES (?,?,?) ON CONFLICT (p_u_id) DO NOTHING;";
+	
+	public void createPersonalData (Integer u_id, String firstname, String lastname) {
+		
+		if (u_id == null || firstname == null || lastname == null)
+			return;
+		
+		try {
+			PreparedStatement s = this.queries.get("CREATE_PERSONAL_DATA");
+			
+			s.setInt(1, u_id);
+			s.setString(2, firstname);
+			s.setString(3, lastname);
+			
+			s.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
 	
 }

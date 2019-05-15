@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS tokens (
 
 CREATE TABLE IF NOT EXISTS people (
 	p_id SERIAL PRIMARY KEY,
-	p_u_id INTEGER NOT NULL REFERENCES users(u_id),
+	p_u_id INTEGER UNIQUE NOT NULL REFERENCES users(u_id),
 	p_firstname TEXT NOT NULL,
 	p_lastname TEXT NOT NULL
 );

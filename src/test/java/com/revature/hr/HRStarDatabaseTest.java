@@ -53,8 +53,8 @@ public class HRStarDatabaseTest {
 	@Test
 	public void testGetUserToken () {
 
-		assertNotNull(db.getUser("e946f790253d61c01d8f908e6b6386c3a5988e8e49afea0c4fffed6ec1aae5ec0e43c90d612019f8c4184d4a2b1b8b5b661d1d2d86583341f7904d3afaccf338"));
-		assertNotNull(db.getUser("aca5abbf4f339c9ae1a5fe688a9b4af83a780da44c383674d251197c2624df19e22eba73c65584a7fef93801f3f96ca40f1f99547aac59f7dbd0476ef37884e6"));
+		assertNotNull(db.getUser("e946f790253d61c01d8f908e6b6386c3a5988e8e49afea0c4fffed6ec1aae5ec0e43c90d612019f8c4184d4a2b1b8b5b661d1d2d86583341f7904d3afaccf338", Token.Type.AUTHENTICATION));
+		assertNotNull(db.getUser("aca5abbf4f339c9ae1a5fe688a9b4af83a780da44c383674d251197c2624df19e22eba73c65584a7fef93801f3f96ca40f1f99547aac59f7dbd0476ef37884e6", Token.Type.AUTHENTICATION));
 	}
 
 	@Test
@@ -90,10 +90,10 @@ public class HRStarDatabaseTest {
 	@Test
 	public void testGetPunchesUserDate () {
 
-		ArrayList punches = db.getPunches(db.getUser(1), new Date(2019, 5, 14));
+		ArrayList<ClockPunch> punches = db.getPunches(db.getUser(1).getId(), new Date(2019, 5, 14));
 		assertTrue(punches.isEmpty());
 		
-		punches = db.getPunches(db.getUser(1));
+		punches = db.getPunches(db.getUser(1).getId());
 		assertFalse(punches.isEmpty());
 	}
 
@@ -136,7 +136,7 @@ public class HRStarDatabaseTest {
 		Token t = db.createUser(user, pass, reg_token);
 		assertNotNull(t);
 		
-		User u = db.getUser(t.getValue());
+		User u = db.getUser(t.getValue(), Token.Type.AUTHENTICATION);
 		assertNotNull(u);
 		assertTrue((u.getUsername().equals(user)) && (u.getPassword().equals(pass)) && (u.getSuper_id() == 1));
 	}
@@ -149,7 +149,7 @@ public class HRStarDatabaseTest {
 		assertNotNull(t);
 		Token u = db.createUser("A", "B", t.getValue());
 		
-		assertNotNull(db.getUser(u.getValue()));
+		assertNotNull(db.getUser(u.getValue(), Token.Type.AUTHENTICATION));
 		
 	}
 
@@ -157,7 +157,7 @@ public class HRStarDatabaseTest {
 	public void testInvalidateToken () {
 
 		Token t = db.getToken("extra", "extra");
-		db.invalidateToken(t);
+		db.invalidateToken(t.getValue(), Token.Type.AUTHENTICATION);
 		t = db.getToken("extra", "extra");
 		
 		assertNotNull(t);
