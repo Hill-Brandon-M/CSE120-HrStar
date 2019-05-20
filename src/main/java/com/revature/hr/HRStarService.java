@@ -45,7 +45,7 @@ public class HRStarService extends javax.ws.rs.core.Application {
 		return t;
 	}
 	
-	@GET
+	@DELETE
 	@Path("/logout")
 	public void logout () {
 		
@@ -173,7 +173,28 @@ public class HRStarService extends javax.ws.rs.core.Application {
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<User> getSubordinates (@CookieParam("access_token") String t_value) {
 		
-		//TODO
-		return null;
+		//TODO: subordinate data fetch
+		throw new ServerErrorException("Resource has not been implemented...", 501);
+	}
+	
+	@POST
+	@Path("/invoices")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Invoice[] getTimesheets (
+			@FormParam("api_key") String key, 
+			@FormParam("start") long start, 
+			@FormParam("end") long end
+			) {
+		
+		if (key == null)
+			throw new ClientErrorException(401);
+		
+		Token api_key = app.getToken(key, Token.Type.API_KEY);
+		
+		if(api_key == null)
+			throw new ClientErrorException("No valid key detected.", 401);
+		
+		return app.getInvoices(start, end);
 	}
 }

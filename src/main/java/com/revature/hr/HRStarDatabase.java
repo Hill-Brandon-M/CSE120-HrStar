@@ -236,6 +236,31 @@ public class HRStarDatabase {
 		return null;
 	}
 	
+	public ArrayList<Invoice> getInvoices(Long start, Long end) {
+		if (start == null || end == null || start > end)
+			return new ArrayList<>();
+		
+		ArrayList<Invoice> output;
+		
+		try {
+			PreparedStatement s = this.queries.get("GET_INVOICES");
+			
+			Timestamp start_time = new Timestamp(start);
+			Timestamp end_time = new Timestamp(end);
+			
+			s.setTimestamp(1, start_time);
+			s.setTimestamp(2, end_time);
+			
+			output = parseInvoices(s.executeQuery());
+						
+		} catch (SQLException e) {
+			e.printStackTrace();
+			output = new ArrayList<>();
+		}
+		
+		return output;
+	}
+	
 	public boolean storePunch (ClockPunch c) {
 		// Punch storage
 		
@@ -342,6 +367,25 @@ public class HRStarDatabase {
 		}
 		
 		return null;		
+	}
+	
+	public void createPersonalData (Integer u_id, String firstname, String lastname) {
+		
+		if (u_id == null || firstname == null || lastname == null)
+			return;
+		
+		try {
+			PreparedStatement s = this.queries.get("CREATE_PERSONAL_DATA");
+			
+			s.setInt(1, u_id);
+			s.setString(2, firstname);
+			s.setString(3, lastname);
+			
+			s.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public void invalidateToken (String t_value, Token.Type type) {
@@ -531,6 +575,38 @@ public class HRStarDatabase {
 		return output;
 	}
 	
+	private static ArrayList<Invoice> parseInvoices (ResultSet rs) {
+		ArrayList<Invoice> output = new ArrayList<>();
+		
+		try {
+			
+			if (rs == null || !rs.first()) {
+				return new ArrayList<>();
+			}
+			
+			do {
+				
+				output.add(
+					new Invoice(
+						rs.getInt("invoice_u_id"),
+						rs.getTimestamp("invoice_total_time").getTime(),
+						rs.getDouble("invoice_balance"),
+						rs.getInt("invoice_emp_acct_id")
+					)
+				);
+				
+			} while (rs.next());
+			
+			return output;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			output = new ArrayList<>();
+		}		
+		
+		return output;
+	}
+	
 	public void open () {
 		try {
 			if (this.conn == null || this.conn.isClosed())
@@ -554,7 +630,11 @@ public class HRStarDatabase {
 			this.queries.put("CREATE_PUNCH", this.conn.prepareStatement(SQL_CREATE_PUNCH, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
 			this.queries.put("UPDATE_PUNCH", this.conn.prepareStatement(SQL_UPDATE_PUNCH, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
 			
-			this.queries.put("CREATE_PERSONAL_DATA", this.conn.prepareStatement(SQL_CREATE_PERSONAL_DATA));
+			this.queries.put("CREATE_PERSONAL_DATA", this.conn.prepareStatement(SQL_CREATE_PERSONAL_DATA, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
+			
+			this.queries.put("GET_SHIFTS_BY_USER_ID", this.conn.prepareStatement(SQL_GET_SHIFTS_BY_USER_ID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
+			this.queries.put("GET_ALL_SHIFTS_BY_DATE", this.conn.prepareStatement(SQL_GET_ALL_SHIFTS_BY_DATE, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
+			this.queries.put("GET_INVOICES", this.conn.prepareStatement(SQL_GET_INVOICES, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -571,13 +651,13 @@ public class HRStarDatabase {
 	}
 	
 	// SQL
-	private static String SQL_GET_USER_TOKEN_BY_CREDENTIALS = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE u_username = ? AND u_password = ? AND t_type = '" + Token.Type.AUTHENTICATION.toString() + "';";
-	private static String SQL_GET_USER_TOKEN_BY_TOKEN_VALUE = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE t_value = ? AND CURRENT_TIMESTAMP < t_expires AND t_type = ?;";
-	private static String SQL_GET_USER_TOKEN_BY_USER_ID = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE u_id = ?;";
-	private static String SQL_GET_USER_BY_SUPERVISOR_ID = "SELECT * FROM users WHERE u_super_u_id = ?;";
+	private static String SQL_GET_USER_TOKEN_BY_CREDENTIALS = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE u_username = ? AND u_password = ? AND t_type = ?";
+	private static String SQL_GET_USER_TOKEN_BY_TOKEN_VALUE = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE t_value = ? AND CURRENT_TIMESTAMP < t_expires AND t_type = ?";
+	private static String SQL_GET_USER_TOKEN_BY_USER_ID = "SELECT * FROM users JOIN tokens ON u_id = t_u_id WHERE u_id = ?";
+	private static String SQL_GET_USER_BY_SUPERVISOR_ID = "SELECT * FROM users WHERE u_super_u_id = ?";
 	
-	private static String SQL_GET_PUNCHES_BY_USER_DATE = "SELECT * FROM punches WHERE punch_u_id = ? AND punch_time > ? ORDER BY punch_time DESC;";	
-	private static String SQL_GET_PERSONAL_DATA_BY_USER_ID = "SELECT * FROM people WHERE p_u_id = ?;";
+	private static String SQL_GET_PUNCHES_BY_USER_DATE = "SELECT * FROM punches WHERE punch_u_id = ? AND punch_time > ? ORDER BY punch_time DESC";	
+	private static String SQL_GET_PERSONAL_DATA_BY_USER_ID = "SELECT * FROM people WHERE p_u_id = ?";
 	
 	private static String SQL_STORE_USER = 
 				"INSERT INTO users (u_username, u_password, u_super_u_id) "
@@ -585,33 +665,30 @@ public class HRStarDatabase {
 			+ 	"ON CONFLICT (u_username) DO UPDATE SET "
 			+ 	"u_password = EXCLUDED.u_password, "
 			+ 	"u_super_u_id = EXCLUDED.u_super_u_id "
-			+ 	"RETURNING u_id;";
+			+ 	"RETURNING u_id";
 	
-	private static String SQL_CREATE_TOKEN = "INSERT INTO tokens (t_type, t_u_id) VALUES (?,?) RETURNING *;";
-	private static String SQL_UPDATE_TOKEN = "UPDATE tokens SET t_expires = ?, t_value = ? WHERE t_id = ?;";
+	private static String SQL_CREATE_TOKEN = "INSERT INTO tokens (t_type, t_u_id) VALUES (?,?) RETURNING *";
+	private static String SQL_UPDATE_TOKEN = "UPDATE tokens SET t_expires = ?, t_value = ? WHERE t_id = ?";
   
-	private static String SQL_CREATE_PUNCH = "INSERT INTO punches (punch_u_id, punch_type, punch_time, punch_submitted, punch_status) VALUES (?,?,?,?,?);";
-	private static String SQL_UPDATE_PUNCH = "UPDATE punches SET punch_time = ?, punch_status = ? WHERE punch_id = ?;";
+	private static String SQL_CREATE_PUNCH = "INSERT INTO punches (punch_u_id, punch_type, punch_time, punch_submitted, punch_status) VALUES (?,?,?,?,?)";
+	private static String SQL_UPDATE_PUNCH = "UPDATE punches SET punch_time = ?, punch_status = ? WHERE punch_id = ?";
 	
-	private static String SQL_CREATE_PERSONAL_DATA = "INSERT INTO people (p_u_id, p_firstname, p_lastname) VALUES (?,?,?) ON CONFLICT (p_u_id) DO NOTHING;";
+	private static String SQL_CREATE_PERSONAL_DATA = "INSERT INTO people (p_u_id, p_firstname, p_lastname) VALUES (?,?,?) ON CONFLICT (p_u_id) DO NOTHING";
 	
-	public void createPersonalData (Integer u_id, String firstname, String lastname) {
-		
-		if (u_id == null || firstname == null || lastname == null)
-			return;
-		
-		try {
-			PreparedStatement s = this.queries.get("CREATE_PERSONAL_DATA");
-			
-			s.setInt(1, u_id);
-			s.setString(2, firstname);
-			s.setString(3, lastname);
-			
-			s.execute();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-	}
+	private static String SQL_GET_SHIFTS_BY_USER_ID = "SELECT * FROM shifts WHERE shifts_u_id = ?";
 	
+	private static String SQL_GET_ALL_SHIFTS_BY_DATE = "SELECT * FROM shifts WHERE shift_end > ? AND shift_end < ?";
+	
+	private static String SQL_GET_SHIFT_SUM = 
+			"SELECT shift_u_id as invoice_u_id, SUM(shift_time) AS invoice_total_time "
+		+ 	"FROM(" + SQL_GET_ALL_SHIFTS_BY_DATE + ") AS invoices "
+		+ 	"GROUP BY shift_u_id";
+	
+	private static String SQL_GET_INVOICES = 
+			"SELECT invoice_u_id, "
+		+ 	"invoice_total_time, "
+		+ 	"EXTRACT(HOUR FROM invoice_total_time) * emp_payrate AS invoice_balance, "
+		+ 	"emp_acct_id AS invoice_emp_acct_id "
+		+ 	"FROM (" + SQL_GET_SHIFT_SUM + ") AS shift_sum "
+		+ 	"JOIN employees ON emp_u_id = invoice_u_id";
 }

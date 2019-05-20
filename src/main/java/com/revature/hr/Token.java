@@ -16,7 +16,7 @@ public class Token implements Serializable{
 	 *
 	 */
 	public static enum Type {
-		AUTHENTICATION, REGISTRATION
+		AUTHENTICATION, REGISTRATION, API_KEY
 	}
 	
 	private Integer id;

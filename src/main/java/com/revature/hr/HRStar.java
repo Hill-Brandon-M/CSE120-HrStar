@@ -27,10 +27,10 @@ public class HRStar {
 		this.db.invalidateToken(t_value, type);
 	}
 	
-	public Token getToken (String value) {
+	public Token getToken (String value, Token.Type type) {
 		//Find Token on database by value
 		//Return token object
-		return this.db.getToken(value);
+		return this.db.getToken(value, type);
 	}
 	
 	public User getUser (String t_value, Token.Type type) {
@@ -113,5 +113,17 @@ public class HRStar {
 		
 		return this.db.getPersonalData(u.getId());
 		
+	}
+	
+	public Invoice[] getInvoices(Long start_time, Long end_time) {
+		if (start_time == null || end_time == null || end_time < start_time)
+			return null;
+		
+		ArrayList<Invoice> result = this.db.getInvoices(start_time, end_time);
+		
+		Invoice[] output = new Invoice[result.size()];
+		output = result.toArray(output);
+		
+		return output;
 	}
 }

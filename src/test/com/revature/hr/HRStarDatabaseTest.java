@@ -13,6 +13,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.revature.hr.ClockPunch;
+import com.revature.hr.HRStarDatabase;
+import com.revature.hr.Person;
+import com.revature.hr.Token;
+import com.revature.hr.User;
+import com.revature.hr.ClockPunch.State;
+import com.revature.hr.ClockPunch.Type;
+
 
 public class HRStarDatabaseTest {
 	

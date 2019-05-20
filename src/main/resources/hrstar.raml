@@ -1,0 +1,242 @@
+#%RAML 1.0
+title: HRStar API
+baseUri: http://{host_domain}/HRStar/api/hr
+mediaType:
+  - application/json
+version: 0.2.0
+protocols:
+  - http
+
+baseUriParameters:
+  host_domain:
+    description: The host domain for this HRStar deployment.
+    default: localhost:8080
+    type: string
+    required: true
+
+types:
+
+  Token:
+    description: Controls data access permissions.
+    properties:
+      id:
+        type: integer
+      u_id:
+        type: integer
+      type:
+        type: string
+      expires:
+        type: number
+      value:
+        type: string
+
+    example: |
+      {
+          "id": 28,
+          "u_id": 16,
+          "type": "AUTHENTICATION",
+          "expires": 1557944915329,
+          "value": "19819103-16fd-4abd-aade-9db7364c529d"
+      }
+
+  Person:
+    description: Personal data.
+    properties:
+      id:
+        type: integer
+      firstname:
+        type: string
+      lastname:
+        type: string
+    
+    example: | 
+      {
+        "id":4,
+        "firstname": "John",
+        "lastname": "Doe"
+      }
+      
+  Invoice:
+    properties:
+      user_id:
+        type: integer
+      time:
+        type: number
+      balance:
+        type: number
+      acct_id:
+        type: integer
+
+/login:
+  post:
+    body:
+      application/x-www-form-urlencoded:
+        properties:
+          username:
+            type: string
+          password:
+            type: string
+    
+    
+
+    responses:
+      200:
+        description: Login was successful.
+        headers:
+          Cookie:
+            displayName: access_token
+            type: string
+        body:
+          application/json:
+            type: Token
+      204:
+        description: Login failed.
+
+/logout:
+  get:
+    responses:
+      200:
+        description: Logout was successful.
+
+/about/{token}:
+    get:
+      queryParameters:
+        token:
+          description: The access token of the user being queried.
+          required: true
+          
+      responses:
+        200:
+          description: User was found.
+          body:
+            application/json:
+              type: Person
+        
+        204:
+          description: User was not found.
+
+/punch/{type}:
+    post:
+      headers:
+        Cookie:
+          displayName: access_token
+          type: string
+
+      body:
+        application/x-www-form-urlencoded:
+          properties:
+            time:
+              type: number
+              required: true
+              description: The time of the clock punch. Value should be in Epoch milliseconds format.
+
+      responses:
+        200:
+          description: The punch was submitted successfully.
+        
+        401:
+          description: The client is not authenticated.
+        
+        404:
+          description: The punch type specified does not exist.
+        
+        409:
+          description: The previous clock punch for this user is of the same type as the one they are currently submitting.
+
+        422:
+          description: Parameters are invalid.
+        
+        500:
+          description: Server-side data access failed.
+      
+/register/{reg_token}:
+  get:
+    description: Creates a new user.
+
+    body:
+      application/x-www-form-urlencoded:
+        properties:
+          username:
+            description: The desired username for this user
+            type: string
+          password:
+            description: The desired password for this user
+            type: string
+          firstname:
+            description: The first name of the user.
+            type: string
+          lastname:
+            description: The last name of the user.
+            type: string
+    
+    responses:
+      200:
+        description: The user was initialized successfully.
+        headers:
+          Cookie:
+            displayName: access_token
+            description: The access token for the new user.
+            type: string
+        
+        body:
+          application/json:
+            type: Token
+      
+      204:
+        description: The user was not initialized.
+
+/invite:
+  get:
+    headers:
+      Cookie:
+        displayName: access_token
+        description: The access token of the user creating this invite. It is used to determine the supervisor of the user who uses this link to initialize their user.
+        required: true
+    
+    responses:
+      200:
+        description: The invite was created successfully.
+        body:
+          application/json:
+            type: Token
+      
+      204:
+        description: The invite creation failed.
+
+/subordinates:
+  /get:
+    get:      
+      description: NOT IMPLEMENTED YET - Retrieves the user information for all users thet have the current user as their supervisor.
+    
+      responses:
+        501:
+          description: This feature has not been implemented yet.
+
+/invoices:
+  post:
+    description: Fetches all invoices for the defined period.
+    
+    headers:
+      Cookie:
+        displayName: api_key
+        description: The API Key controls access to admin level functions.
+        required: true
+    body:
+      application/x-www-form-urlencoded:
+        properties:
+          start:
+            type: number
+            required: true
+           end:
+            type: number
+            required: true
+            
+    responses:
+      200:
+        body:
+          application/json:
+            properties:
+              invoices:
+                type: Invoice[]
+      
+        
