@@ -183,12 +183,18 @@ public class HRStarService extends javax.ws.rs.core.Application {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Invoice[] getTimesheets (
 			@FormParam("api_key") String key, 
-			@FormParam("start") long start, 
-			@FormParam("end") long end
+			@FormParam("start") Long start, 
+			@FormParam("end") Long end
 			) {
 		
 		if (key == null)
 			throw new ClientErrorException(401);
+		
+		if (end == null)
+			end = System.currentTimeMillis();
+		
+		if (start == null)
+			start = (long) 0;
 		
 		Token api_key = app.getToken(key, Token.Type.API_KEY);
 		
